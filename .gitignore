@@ -1,0 +1,9 @@
+data/
+
+.ipynb_checkpoints
+*.ipynb
+
+*.pyc
+*.xml
+*.iml
+.idea
