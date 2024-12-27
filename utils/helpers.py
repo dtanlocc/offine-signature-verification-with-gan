@@ -119,3 +119,10 @@ def plot_loss(train_losses, label, save_dir):
     save_dir = os.path.join(save_dir, "output", "confusion_matrix.png")
 
     plt.savefig(save_dir, dpi=300)
+
+def calculator_metric(confusion_matrix):
+    tn, fp, fn, tp = confusion_matrix.ravel()
+    far = fp / (fp + tn)  # FAR
+    frr = fn / (fn + tp)  # FRR
+    accuracy = (tp + tn) / (tp + tn + fp + fn)
+    return far, frr, accuracy
