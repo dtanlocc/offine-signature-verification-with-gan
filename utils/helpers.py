@@ -1,31 +1,15 @@
-from models.discriminator import Discriminator
-from models.generator import Generator
-import seaborn as sns
-import numpy as np
-import matplotlib.pyplot as plt
 import os
-from sklearn.manifold import TSNE
+import os.path
+import os.path
+
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 import torch
-import torch.nn as nn
-
-
-def load_model(opt, device):
-    print('Init model Discriminator')
-    model_d = Discriminator(num_users=opt.NUM_USERS + 1, user_embedding_dim=opt.NUM_EMBEDDING).to(device)
-    print('Init model Generator')
-    model_g = Generator(nz=opt.NZ, num_users=opt.NUM_USERS + 1, user_embedding_dim=opt.NUM_EMBEDDING).to(device)
-    model_g.apply(weights_init)
-    return model_d, model_g
-
-
-# custom weights initialization called on ``netG`` and ``netD``
-def weights_init(m):
-    classname = m.__class__.__name__
-    if classname.find('Conv') != -1:
-        nn.init.normal_(m.weight.data, 0.0, 0.02)
-    elif classname.find('BatchNorm') != -1:
-        nn.init.normal_(m.weight.data, 1.0, 0.02)
-        nn.init.constant_(m.bias.data, 0)
+import torch.utils.data
+import torch.utils.data
+from sklearn.manifold import TSNE
 
 
 def plot_tsne(data, labels, save_dir, epoch):
@@ -41,6 +25,7 @@ def plot_tsne(data, labels, save_dir, epoch):
     save_dir = os.path.join(save_dir, "output", "tsne_" + str(epoch) + ".png")
 
     plt.savefig(save_dir, dpi=300)
+    plt.close()
 
 
 def visualize_metrics_seaborn(classification_reports, save_dir):
@@ -89,6 +74,7 @@ def visualize_metrics_seaborn(classification_reports, save_dir):
     save_dir = os.path.join(save_dir, "output", "metric.png")
 
     plt.savefig(save_dir, dpi=300)
+    plt.close()
 
 
 def plot_confusion_matrix(cm, class_names, save_dir):
@@ -102,6 +88,7 @@ def plot_confusion_matrix(cm, class_names, save_dir):
     save_dir = os.path.join(save_dir, "output", "confusion_matrix.png")
 
     plt.savefig(save_dir, dpi=300)
+    plt.close()
 
 
 def plot_loss(train_losses, label, save_dir):
@@ -119,10 +106,45 @@ def plot_loss(train_losses, label, save_dir):
     save_dir = os.path.join(save_dir, "output", "confusion_matrix.png")
 
     plt.savefig(save_dir, dpi=300)
+    plt.close()
 
-def calculator_metric(confusion_matrix):
-    tn, fp, fn, tp = confusion_matrix.ravel()
-    far = fp / (fp + tn)  # FAR
-    frr = fn / (fn + tp)  # FRR
-    accuracy = (tp + tn) / (tp + tn + fp + fn)
-    return far, frr, accuracy
+
+def test_generator(img_list, save_folder):
+    fig = plt.figure(figsize=(8, 8))
+    plt.axis("off")
+    ims = [[plt.imshow(np.transpose(i, (1, 2, 0)), animated=True)] for i in img_list]
+    ani = animation.ArtistAnimation(fig, ims, interval=1000, repeat_delay=1000, blit=True)
+    if save_folder is not None:
+        # Lưu animation thành file GIF
+        ani.save(f"{save_folder}/animation_generator.gif", writer="pillow", fps=1)
+    # display(HTML(ani.to_jshtml()))
+    plt.close()
+
+
+def plot_roc_curve(fpr, tpr, roc_auc, optimal_idx, optimal_threshold, save_dir):
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.scatter(fpr[optimal_idx], tpr[optimal_idx], marker='o', color='black',
+                label='Optimal threshold = %0.2f' % optimal_threshold)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic (ROC) Curve')
+    plt.legend(loc="lower right")
+    # plt.grid(alpha=0.3)
+
+    os.makedirs(os.path.join(save_dir, "output"), exist_ok=True)
+    save_dir = os.path.join(save_dir, "output", "ROC_AUC.png")
+    plt.show()
+    plt.savefig(save_dir, dpi=300)
+    plt.close()
+
+
+def calculator_metric(cm):
+    tn, fp, fn, tp = cm.ravel()
+    far = fp / (fp + tn)
+    frr = fn / (fn + tp)
+    acc = (tp + tn) / (tp + tn + fp + fn)
+    return far, frr, acc
