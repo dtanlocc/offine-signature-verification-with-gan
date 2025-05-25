@@ -40,7 +40,7 @@ class Discriminator(nn.Module):
             nn.Linear(4096, 4096),
             nn.ReLU(inplace=True),
 
-            nn.Linear(4096, output_dim)  # Kích thước đầu ra là output_dim
+            nn.Linear(4096, output_dim) # Kích thước đầu ra là output_dim
         )
 
     def forward_one(self, x):

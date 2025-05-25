@@ -26,13 +26,12 @@ class UNetBlock(nn.Module):
                 diffY = skip.size()[2] - x.size()[2]
                 diffX = skip.size()[3] - x.size()[3]
                 x = F.pad(x, [diffX // 2, diffX - diffX // 2,
-                              diffY // 2, diffY - diffY // 2])
+                            diffY // 2, diffY - diffY // 2])
                 x = torch.cat([x, skip], dim=1)
 
         x = self.relu1(self.bn1(self.conv1(x)))
         x = self.relu2(self.bn2(self.conv2(x)))
         return x
-
 
 class Generator(nn.Module):
     def __init__(self, z_dim=64, img_height=155, img_width=220, channels=1):
